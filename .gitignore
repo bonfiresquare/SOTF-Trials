@@ -1,0 +1,7 @@
+#ignored folders
+.idea
+__pycache__
+
+#ignored files
+*.txt
+\#*.*
