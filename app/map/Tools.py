@@ -16,21 +16,18 @@ class Tools(ABC):
         return min_ if val < min_ else max_ if val > max_ else val
 
     @staticmethod
-    def get_color(_elevation, _stepping):
-        step_half = ceil(_stepping / 2)
-        step_forth = ceil(_stepping / 4)
+    def get_color(_elevation, _stepping, _waterlvl, _grasslvl):
         s = 60
-        if _elevation < step_half:
+        if _elevation < _waterlvl:
             h = 220
-            v = 20 + (_elevation * (80 / step_half))
+            v = 20 + (_elevation * (80 / _waterlvl))
         else:
-            _elevation -= step_half
-            if _elevation < step_forth:
+            if _elevation < _grasslvl:
                 h = 120
-                v = 40 + _elevation * (60 / step_forth)
+                v = 40 + (_elevation - _waterlvl) * (60 / (_grasslvl - _waterlvl))
             else:
                 h = 60
-                v = 60 - (_elevation - step_forth) * (50 / step_forth)
+                v = 60 - (_elevation - _grasslvl) * (50 / (_stepping - _grasslvl))
         rgb = Tools.hsv_to_rgb(h, s, v)
         return Color(rgb[0], rgb[1], rgb[2])
 

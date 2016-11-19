@@ -11,13 +11,19 @@ from abc import ABC
 class Params(ABC):
 
     window_size = (1200, 800)
-    map_size = (500, 500)
+    map_size = (250, 250)
     map_tilesize = 10
-    map_stepping = 8
-    map_freq_multiplier = 1
+    map_stepping = 10
+    map_freq_multiplier = 0.8
     map_octaves = 64
 
     map_min_tilesize = 2
+
+    # hight < map_waterlevel = water
+    # hight < map_grasslevel && > map_waterlevel = grass
+    # hight > map_grasslevel = mountain
+    map_waterlevel = ceil(map_stepping * 0.5)  # default = ceil(map_stepping * 0.5)
+    map_grasslevel = ceil(map_stepping * 0.75) # default = ceil(map_stepping * 0.75)
 
     @staticmethod
     def calc_min_tilesize(_size):
