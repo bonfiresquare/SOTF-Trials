@@ -17,10 +17,12 @@ class Tileset:
             Tileset.__instance = object.__new__(cls)
         return Tileset.__instance
 
-    def __init__(self, size_x, size_y, _stepping):
+    def __init__(self, size_x, size_y, _stepping, _waterlvl, _grasslvl):
         self.size_x = size_x
         self.size_y = size_y
         self.stepping = _stepping
+        self.waterlvl = _waterlvl
+        self.grasslvl = _grasslvl
         self.height = {}
         # self.tiles = {}        # TODO: making the tiles being useful
         self.colormap = {}
@@ -35,7 +37,7 @@ class Tileset:
                 self.height[i, k] = round((1 + snoise2((i + offset) / freq,
                                                        (k + offset) / freq,
                                                        octaves=_octaves)) * (self.stepping / 2))
-                self.colormap[i, k] = Tools.get_color(self.height[i, k], self.stepping)
+                self.colormap[i, k] = Tools.get_color(self.height[i, k],self.stepping,self.waterlvl,self.grasslvl)
                 # _min = self.height[i, k] if self.height[i, k] < _min else _min
                 # _max = self.height[i, k] if self.height[i, k] > _max else _max
                 try:
@@ -54,6 +56,10 @@ class Tileset:
 
     def get_color_of(self, _x, _y):
         return self.colormap[int(_x), int(_y)]
+
+    ## def get_waterlevel_of(self, _x, _y):
+     #   # waterlevel=100 : water; waterlevel=50 : wet grassland; waterlevel=0 : desert/mountain
+     #   if self.colormap[int(_x), int(_y)]
 
     @staticmethod
     def reset_tileset():

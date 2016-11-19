@@ -33,7 +33,8 @@ class Window:
         pygame.display.flip()
 
     def create_map(self):
-        self.tileset = Tileset(Params.map_size[0], Params.map_size[1], Params.map_stepping)
+        self.tileset = Tileset(Params.map_size[0], Params.map_size[1], Params.map_stepping,
+                               Params.map_waterlevel,Params.map_grasslevel)
         self.tileset.create_heightmap(Params.map_freq_multiplier, Params.map_octaves)
         self.tileset.create_tileset()
 
