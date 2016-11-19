@@ -10,7 +10,7 @@ import datetime
 
 #  _________________________________________________________ #
 # ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define mainloop ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
-
+# looooooooooooooooooooooooooooooooooooooooooooooooooooooool #
 def main():
 
     win = Window()
