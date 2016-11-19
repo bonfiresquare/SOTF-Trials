@@ -20,10 +20,10 @@ class Params(ABC):
     map_min_tilesize = 2
 
     # hight < map_waterlevel = water
-    # hight < map_grasslevel && > map_grasslevel = grass
+    # hight < map_grasslevel && > map_waterlevel = grass
     # hight > map_grasslevel = mountain
-    map_waterlevel = ceil(map_stepping * 0.5)
-    map_grasslevel = ceil(map_stepping * 0.75)
+    map_waterlevel = ceil(map_stepping * 0.5)  # default = ceil(map_stepping * 0.5)
+    map_grasslevel = ceil(map_stepping * 0.75) # default = ceil(map_stepping * 0.75)
 
     @staticmethod
     def calc_min_tilesize(_size):
