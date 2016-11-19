@@ -2,8 +2,8 @@
 
 from noise import snoise2
 from random import random
-from map.Tile import *
 from map.Tools import *
+from Tile import *
 
 
 #  _________________________________________________________ #
@@ -22,7 +22,7 @@ class Tileset:
         self.size_y = size_y
         self.stepping = _stepping
         self.height = {}
-        # self.tiles = {}        # TODO: Gib den Tiles einen Sinn
+        # self.tiles = {}        # TODO: making the tiles being useful
         self.colormap = {}
         self.counter = {}
 
@@ -33,8 +33,8 @@ class Tileset:
         for k in range(self.size_y):
             for i in range(self.size_x):
                 self.height[i, k] = round((1 + snoise2((i + offset) / freq,
-                                                      (k + offset) / freq,
-                                                      octaves=_octaves)) * ((self.stepping) / 2))
+                                                       (k + offset) / freq,
+                                                       octaves=_octaves)) * (self.stepping / 2))
                 self.colormap[i, k] = Tools.get_color(self.height[i, k], self.stepping)
                 # _min = self.height[i, k] if self.height[i, k] < _min else _min
                 # _max = self.height[i, k] if self.height[i, k] > _max else _max
