@@ -14,7 +14,7 @@ class Tools(ABC):
         return min_ if val < min_ else max_ if val > max_ else val
 
     @staticmethod
-    def dict_size_2d(_dict) -> object:
+    def dict_size_2d(_dict) -> tuple:
         x, y = 0, 0
         while not y:
             try:
