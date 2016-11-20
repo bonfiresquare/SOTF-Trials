@@ -54,4 +54,6 @@ class Minder(ABC):
 
     @staticmethod
     def get_mouse_movement():
-        return Minder._mouse_move
+        _out = Minder._mouse_move
+        Minder._mouse_move = (0, 0)
+        return _out
