@@ -11,17 +11,17 @@ from abc import ABC
 class Params(ABC):
 
     window_size = (1200, 800)
-    map_size = (250, 250)
+    map_size = (200, 200)
     map_tilesize = 10
-    map_stepping = 10
+    map_stepping = 12
     map_freq_multiplier = 0.8
     map_octaves = 64
 
-    map_min_tilesize = 2
+    map_min_tilesize = 4
 
-    # hight < map_waterlevel = water
-    # hight < map_grasslevel && > map_waterlevel = grass
-    # hight > map_grasslevel = mountain
+    # height < map_waterlevel = water
+    # height < map_grasslevel && > map_waterlevel = grass
+    # height > map_grasslevel = mountain
     map_waterlevel = ceil(map_stepping * 0.5)  # default = ceil(map_stepping * 0.5)
     map_grasslevel = ceil(map_stepping * 0.75) # default = ceil(map_stepping * 0.75)
 

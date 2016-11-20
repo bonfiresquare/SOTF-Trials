@@ -61,14 +61,25 @@ def main():
                 Params.decrease_tilesize()
             new_tilesize = Params.map_tilesize
             if not old_tilesize == new_tilesize:
-                old_mapped_tiles_x = Params.map_size[0] - win.get_display_size()[0] / old_tilesize
-                old_mapped_tiles_y = Params.map_size[1] - win.get_display_size()[1] / old_tilesize
-                new_mapped_tiles_x = Params.map_size[0] - win.get_display_size()[0] / new_tilesize
-                new_mapped_tiles_y = Params.map_size[1] - win.get_display_size()[1] / new_tilesize
-                centered_offset_x = round((new_mapped_tiles_x - old_mapped_tiles_x) / 2)
-                centered_offset_y = round((new_mapped_tiles_y - old_mapped_tiles_y) / 2)
-                general_offset = (general_offset[0] + centered_offset_x,
-                                  general_offset[1] + centered_offset_y)
+                _window_size = win.get_display_size()
+                old_mapped_tiles = (_window_size[0] / old_tilesize, _window_size[1] / old_tilesize)
+                new_mapped_tiles = (_window_size[0] / new_tilesize, _window_size[1] / new_tilesize)
+
+                print('________\noffset: ', general_offset)
+                print('old: ', old_mapped_tiles)
+                print('new: ', new_mapped_tiles)
+                centered_offset = (ceil((new_mapped_tiles[0] - old_mapped_tiles[0]) / 2),
+                                   ceil((new_mapped_tiles[1] - old_mapped_tiles[1]) / 2))
+                print('delta: ', centered_offset)
+                # old_mapped_tiles_x = Params.map_size[0] - win.get_display_size()[0] / old_tilesize
+                # old_mapped_tiles_y = Params.map_size[1] - win.get_display_size()[1] / old_tilesize
+                # new_mapped_tiles_x = Params.map_size[0] - win.get_display_size()[0] / new_tilesize
+                # new_mapped_tiles_y = Params.map_size[1] - win.get_display_size()[1] / new_tilesize
+                # centered_offset_x = round((new_mapped_tiles_x - old_mapped_tiles_x) / 2)
+                # centered_offset_y = round((new_mapped_tiles_y - old_mapped_tiles_y) / 2)
+                general_offset = (general_offset[0] + centered_offset[0],
+                                  general_offset[1] + centered_offset[1])
+                print('offset: ', general_offset)
                 has_changed = True
 
         if user_input[0:4] == 'MOVE':
@@ -83,8 +94,8 @@ def main():
             old_general_offset = general_offset
             if drag_flag:
                 _movement = Minder.get_mouse_movement()
-                general_offset = (general_offset[0] - round(_movement[0] / 5),
-                                  general_offset[1] - round(_movement[1] / 5))
+                general_offset = (general_offset[0] - round(_movement[0] / 3),
+                                  general_offset[1] - round(_movement[1] / 3))
             else:
                 drag_flag = True
             if not old_general_offset == general_offset:
@@ -101,7 +112,6 @@ def main():
 
             max_general_offset = (ceil(_display_half[0] / _ts) + Params.map_size[0],
                                   ceil(_display_half[1] / _ts) + Params.map_size[1])
-            print('max offset: ', max_general_offset)
 
             general_offset = (Tools.clip(general_offset[0], 0, max_general_offset[0]),
                               Tools.clip(general_offset[1], 0, max_general_offset[1]))
@@ -121,7 +131,6 @@ def main():
             field_of_view = (ceil(_display_size[0] / _ts - base_offset[0]),
                              ceil(_display_size[1] / _ts - base_offset[1]))
 
-            print(general_offset)
             win.clear_screen()
             win.draw_tileset(field_of_view, base_offset, map_offset)
 
