@@ -44,13 +44,8 @@ class Window:
 
     def draw_tileset(self):
         self.render_curr_map_surface()
-        curr_offset = (Params.win_render_margin * (-1), Params.win_render_margin * (-1))
-        if Params.map_current_offset[0] > 0:
-            curr_offset = (curr_offset[0] + Params.map_current_offset[0],
-                           curr_offset[1])
-        if Params.map_current_offset[1] > 0:
-            curr_offset = (curr_offset[0],
-                           curr_offset[1] + Params.map_current_offset[1])
+        curr_offset = (Params.map_current_offset[0] + Params.map_add_surface_offset[0],
+                       Params.map_current_offset[1] + Params.map_add_surface_offset[1])
         self.screen.blit(self.curr_map_surface,curr_offset)  # display current map on screen
 
     def capture(self, _filename):
@@ -110,6 +105,29 @@ class Window:
         # initialize current map section
         self.curr_map_surface = self.map_surface.copy();
 
+    #def zoom_map_surface(self):
+    #    # get first displayed tile
+    #    first_tile = self.get_first_displayed_tile()
+
+    #    # get last displayed tile
+    #    last_tile = self.get_last_displayed_tile()
+
+    #    new_width = (last_tile[0] - first_tile[0])
+    #    new_height = (last_tile[1] - first_tile[1])
+
+    #    # scale curr_map to the viewn section and insert map section
+    #    self.curr_map_surface = pygame.transform.scale(self.curr_map_surface,(new_width,new_height))
+    #    self.curr_map_surface.blit(self.map_surface, (0, 0), (first_tile, last_tile))
+
+    #    # scale curr_map to the tile size
+    #    new_width *= Params.map_tilesize
+    #    new_height *= Params.map_tilesize
+    #    self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (new_width, new_height))
+
+    #    Params.map_add_surface_offset = first_tile * Params.map_tilesize
+    #    print('Additional offset: ',first_tile)
+    #    #self.curr_map_surface = Params.zoom_map_surface()
+
     def get_centered_zoom_offset(self, _old_tile_size, _new_tile_size):
         screen_center = (ceil(self.size[0] / 2), ceil(self.size[1] / 2))
         curr_offset = Params.map_current_offset
@@ -131,33 +149,29 @@ class Window:
         return curr_tile
 
     def get_first_displayed_tile(self):
-        # get (first displayed pixel of map) - render margin
-        curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
-
-        # find first x-position tile:
-        first_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(first_x[0], 0, Params.map_size[0])
+        # find first x-position:
+        first_x = self.get_tile_by_map_position((Params.map_current_offset[0] * (-1), 0))
+        x = Tools.clip(first_x[0] - Params.map_current_surface_margin,
+                       0, Params.map_size[0])
 
         # find first y-position:
-        first_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(first_y[1], 0, Params.map_size[1])
+        first_y = self.get_tile_by_map_position((0, Params.map_current_offset[1] * (-1)))
+        y = Tools.clip(first_y[1]  - Params.map_current_surface_margin,
+                       0, Params.map_size[1])
 
         first_tile = (x,y)
         return first_tile
 
     def get_last_displayed_tile(self):
-        # get (last displayed pixel of map) + render margin
-        curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] +  Params.win_render_margin
-
         # find last x-position
-        last_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(last_x[0], 0, Params.map_size[0])
+        last_x = self.get_tile_by_map_position((Params.map_current_offset[0] * (-1) + self.size[0], 0))
+        x = Tools.clip(last_x[0] + Params.map_current_surface_margin,
+                       0, Params.map_size[0])
 
         # find last y-position
-        last_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(last_y[1], 0, Params.map_size[1])
+        last_y = self.get_tile_by_map_position((0, Params.map_current_offset[1] * (-1) + self.size[1]))
+        y = Tools.clip(last_y[1] + Params.map_current_surface_margin,
+                       0, Params.map_size[1])
 
         last_tile = (x, y)
         return last_tile
