@@ -100,8 +100,7 @@ def main():
             general_offset = (Tools.clip(general_offset[0], min_offset[0], _display_half[0]),
                               Tools.clip(general_offset[1], min_offset[1], _display_half[1]))
 
-
-            Params.map_current_offset = general_offset  # write back offset to parameters
+            Params.map_current_offset = general_offset
             print(general_offset)
             win.clear_screen()
             win.draw_tileset()
