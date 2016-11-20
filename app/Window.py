@@ -33,9 +33,13 @@ class Window:
         pygame.display.flip()
 
     def create_map(self):
-        self.tileset = Tileset(Params.map_size[0], Params.map_size[1], Params.map_stepping,
-                               Params.map_waterlevel,Params.map_grasslevel)
-        self.tileset.create_heightmap(Params.map_freq_multiplier, Params.map_octaves)
+        self.tileset = Tileset(Params.map_size[0],
+                               Params.map_size[1],
+                               Params.map_stepping,
+                               Params.map_waterlevel,
+                               Params.map_grasslevel)
+        self.tileset.create_heightmap(Params.map_freq_multiplier,
+                                      Params.map_octaves)
         self.tileset.create_tileset()
 
         self.create_map_surface()
@@ -46,11 +50,9 @@ class Window:
         self.render_curr_map_surface()
         curr_offset = (Params.win_render_margin * (-1), Params.win_render_margin * (-1))
         if Params.map_current_offset[0] > 0:
-            curr_offset = (curr_offset[0] + Params.map_current_offset[0],
-                           curr_offset[1])
+            curr_offset = (curr_offset[0] + Params.map_current_offset[0], curr_offset[1])
         if Params.map_current_offset[1] > 0:
-            curr_offset = (curr_offset[0],
-                           curr_offset[1] + Params.map_current_offset[1])
+            curr_offset = (curr_offset[0], curr_offset[1] + Params.map_current_offset[1])
         self.screen.blit(self.curr_map_surface,curr_offset)  # display current map on screen
 
     def capture(self, _filename):
