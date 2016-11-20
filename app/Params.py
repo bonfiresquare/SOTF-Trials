@@ -4,6 +4,8 @@ from Tools import *
 from math import ceil
 from abc import ABC
 
+from map.Tileset import *
+import pygame
 
 #  _________________________________________________________ #
 # ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define file class ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
@@ -11,19 +13,24 @@ from abc import ABC
 class Params(ABC):
 
     window_size = (1200, 800)
-    map_size = (200, 200)
-    map_tilesize = 10
-    map_stepping = 12
-    map_freq_multiplier = 0.8
-    map_octaves = 64
+    map_size = (250, 125)   # default = (250, 250)
+    map_tilesize = 1          # default = 10
+    map_stepping = 16        # default = 10
+    map_freq_multiplier = 0.7 # default = 0.8
+    map_octaves = 64        # default = 64
 
-    map_min_tilesize = 4
+    map_min_tilesize = 1      # default = 2
+    map_max_tilesize = 40     # default = 40
 
     # height < map_waterlevel = water
     # height < map_grasslevel && > map_waterlevel = grass
     # height > map_grasslevel = mountain
     map_waterlevel = ceil(map_stepping * 0.5)  # default = ceil(map_stepping * 0.5)
-    map_grasslevel = ceil(map_stepping * 0.75) # default = ceil(map_stepping * 0.75)
+    map_grasslevel = ceil(map_stepping * 0.70)   # default = ceil(map_stepping * 0.75)
+
+    map_current_offset = (0, 0)
+    map_add_surface_offset = (0, 0)  # additional surface offset (relative to current offset)
+    win_render_margin = 40           # rendered margin around the visible map - needed to avoid missing tiles
 
     @staticmethod
     def calc_min_tilesize(_size):
@@ -34,8 +41,8 @@ class Params(ABC):
 
     @staticmethod
     def increase_tilesize():
-            Params.map_tilesize = Tools.clip(Params.map_tilesize + 2, Params.map_min_tilesize, 40)
+            Params.map_tilesize = Tools.clip(Params.map_tilesize + 1, Params.map_min_tilesize, Params.map_max_tilesize)
 
     @staticmethod
     def decrease_tilesize():
-            Params.map_tilesize = Tools.clip(Params.map_tilesize - 2, Params.map_min_tilesize, 40)
+            Params.map_tilesize = Tools.clip(Params.map_tilesize - 1, Params.map_min_tilesize, Params.map_max_tilesize)
