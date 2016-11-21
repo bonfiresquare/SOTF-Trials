@@ -13,10 +13,10 @@ import pygame
 class Params(ABC):
 
     window_size = (1200, 800)
-    map_size = (250, 125)   # default = (250, 250)
+    map_size = (600, 400)   # default = (250, 250)
     map_tilesize = 1          # default = 10
-    map_stepping = 16        # default = 10
-    map_freq_multiplier = 0.7 # default = 0.8
+    map_stepping = 32        # default = 10
+    map_freq_multiplier = 0.9 # default = 0.8
     map_octaves = 64        # default = 64
 
     map_min_tilesize = 1      # default = 2
