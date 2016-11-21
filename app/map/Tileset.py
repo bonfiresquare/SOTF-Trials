@@ -3,7 +3,7 @@
 from noise import snoise2
 from random import random
 from map.Tools import *
-from Tile import *
+from map.Tile import *
 
 
 #  _________________________________________________________ #
@@ -44,13 +44,11 @@ class Tileset:
                 self.colormap[i, k] = Tools.get_color(self.height[i, k],self.stepping,self.waterlvl,self.grasslvl)
                 # _min = self.height[i, k] if self.height[i, k] < _min else _min
                 # _max = self.height[i, k] if self.height[i, k] > _max else _max
-                try:
-                    self.counter[self.height[i, k]] += 1
-                except KeyError:
-                    self.counter[self.height[i, k]] = 1
+
         print('Proportional distribution of heights:')
-        for i in self.counter:
-            print(i, ':', self.counter[i], '\t->', round((self.counter[i] * 100) / (self.size_x * self.size_y), 2), '%')
+        _prop_heights = Tools.get_prop_heights()
+        for i in _prop_heights:
+            print(i, ':', '\t->', round((_prop_heights[i] * 100) / (self.size_x * self.size_y), 2), '%')
 
     def create_tileset(self):
         # for k in range(self.size_y):

@@ -125,7 +125,7 @@ class Window:
         new_offset = (round(screen_center[0] - (center_map_surface[0] * (_new_tile_size / _old_tile_size))),
                       round(screen_center[1] - (center_map_surface[1] * (_new_tile_size / _old_tile_size))))
 
-        print('New offset: ',new_offset)
+        # print('New offset: ',new_offset)
         return new_offset
 
     def get_tile_by_map_position(self, _position):
