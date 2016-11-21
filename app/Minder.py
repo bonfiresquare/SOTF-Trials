@@ -2,6 +2,7 @@
 
 from abc import ABC
 import pygame
+from Window import *
 
 
 #  _________________________________________________________ #
@@ -40,7 +41,9 @@ class Minder(ABC):
                 elif event.key == pygame.K_F12:
                     output = 'CAPTURE'
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3:
+                if event.button == 1:
+                    pygame.mouse.set_cursor(*Window.get_cursor_data('lmb'))
+                elif event.button == 3:
                     if not Minder._mouse_pos:
                         # reset possible movements since last mouse_reset after dragging
                         _ = pygame.mouse.get_rel()
@@ -56,7 +59,9 @@ class Minder(ABC):
             elif event.type == pygame.MOUSEMOTION:
                 Minder._mouse_move = pygame.mouse.get_rel()
             elif event.type == pygame.MOUSEBUTTONUP:
+                pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
                 if event.button == 3:
+                    pygame.mouse.set_visible(True)
                     output = 'DRAGGING_OFF'
         return output
 
@@ -79,4 +84,3 @@ class Minder(ABC):
         _pos = Minder._mouse_pos
         pygame.mouse.set_pos(*_pos)
         Minder._mouse_pos = ()
-        pygame.mouse.set_visible(True)
