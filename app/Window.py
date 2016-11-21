@@ -186,23 +186,6 @@ class Window:
     @staticmethod
     def get_cursor_data(_this_one):
         cursors = {}
-        cursors['lmb'] = (  # sized 16x16
-            "   XX           ",
-            "  X..X          ",
-            "  X..X          ",
-            "  X..X          ",
-            "   X..X XXXX    ",
-            "   X..XX..X.XX  ",
-            "   XX..X..X.X.X ",
-            "  X.X..X..X.X.X ",
-            " X..X.........X ",
-            " X............X ",
-            "  X....X.X.X..X ",
-            "  X....X.X.X..X ",
-            "   X...X.X.X.X  ",
-            "    X........X  ",
-            "     X....X.X   ",
-            "     XXXXX XX   ")
 
         cursors['std'] = (  # sized 16x16
             "   XX           ",
@@ -221,6 +204,78 @@ class Window:
             "    X........X  ",
             "     X....X.X   ",
             "     XXXXX XX   ")
+
+        cursors['lmb'] = (  # sized 16x16
+            "   XX           ",
+            "  X..X          ",
+            "  X..X          ",
+            "  X..X          ",
+            "   X..X XXXX    ",
+            "   X..XX..X.XX  ",
+            "   XX..X..X.X.X ",
+            "  X.X..X..X.X.X ",
+            " X..X.........X ",
+            " X............X ",
+            "  X....X.X.X..X ",
+            "  X....X.X.X..X ",
+            "   X...X.X.X.X  ",
+            "    X........X  ",
+            "     X....X.X   ",
+            "     XXXXX XX   ")
+
+        cursors['rmb'] = (  # sized 16x16
+            "   XX  XX       ",
+            "  X..XX..X      ",
+            "  X..XX..X      ",
+            "  X..XX..X      ",
+            "   X..X..XXX    ",
+            "   X..XX..X.XX  ",
+            "   XX..X..X.X.X ",
+            "  X.X..X..X.X.X ",
+            " X..X.........X ",
+            " X............X ",
+            "  X....X.X.X..X ",
+            "  X....X.X.X..X ",
+            "   X...X.X.X.X  ",
+            "    X........X  ",
+            "     X....X.X   ",
+            "     XXXXX XX   ")
+
+        cursors['drg'] = (  # sized 16x16
+            "   XX  XX       ",
+            "  X..XX..X      ",
+            "  X..XX..X      ",
+            "  X..XX..X      ",
+            "  X..XX..XXX    ",
+            "   X..XX..X.XX  ",
+            "   XX..X..X.X.X ",
+            "  X.X..X..X.X.X ",
+            " X..X.........X ",
+            " X............X ",
+            "  X....X.X.X..X ",
+            "  X....X.X.X..X ",
+            "   X...X.X.X.X  ",
+            "    X........X  ",
+            "     X....X.X   ",
+            "     XXXXX XX   ")
+
+        cursors['drg2'] = (  # sized 16x16
+            "       XX       ",
+            "      X..X      ",
+            "     X....X     ",
+            "    X..XX..X    ",
+            "   XXXX..XXXX   ",
+            "  X.X X..X X.X  ",
+            " X..XX.XX.XX..X ",
+            "X..X..X  X..X..X",
+            "X..X..X  X..X..X",
+            " X..XX.XX.XX..X ",
+            "  X.X X..X X.X  ",
+            "   XXXX..XXXX   ",
+            "    X..XX..X    ",
+            "     X....X     ",
+            "      X..X      ",
+            "       XX       ")
 
         _cur_file, _cur_mask = pygame.cursors.compile(cursors[_this_one], 'X', '.')
         return (16, 16), (3, 1), _cur_file, _cur_mask
