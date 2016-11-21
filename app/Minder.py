@@ -8,6 +8,7 @@ import pygame
 # ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define file class ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
 
 class Minder(ABC):
+    _mouse_pos = ()
     _mouse_move = ()
 
     @staticmethod
@@ -40,6 +41,13 @@ class Minder(ABC):
                     output = 'CAPTURE'
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
+                    if not Minder._mouse_pos:
+                        # reset possible movements since last mouse_reset after dragging
+                        _ = pygame.mouse.get_rel()
+                        Minder._mouse_move = (0, 0)
+
+                        Minder._mouse_pos = pygame.mouse.get_pos()
+                        pygame.mouse.set_visible(False)
                     output = 'DRAGGING'
                 elif event.button == 4:
                     output = 'ZOOM_IN'
@@ -54,4 +62,21 @@ class Minder(ABC):
 
     @staticmethod
     def get_mouse_movement():
-        return Minder._mouse_move
+        '''
+        returns a tuple for the last relative mouse movement
+        :returns Tuple:
+        '''
+        _out = Minder._mouse_move
+        Minder._mouse_move = (0, 0)
+        return _out
+
+    @staticmethod
+    def reset_mouse_position():
+        '''
+        reset position of the mouse to the dragging start position
+        :return:
+        '''
+        _pos = Minder._mouse_pos
+        pygame.mouse.set_pos(*_pos)
+        Minder._mouse_pos = ()
+        pygame.mouse.set_visible(True)

@@ -28,6 +28,10 @@ class Tileset:
         self.colormap = {}
         self.counter = {}
 
+    @staticmethod
+    def get_instance():
+        return Tileset.__instance
+
     def create_heightmap(self, _freq_multiplier, _octaves):
         freq = self.size_x * _freq_multiplier
         offset = round((random() + random()) * 100000)
