@@ -84,7 +84,6 @@ def main():
                 has_changed = True
 
         if user_input == 'DRAGGING_OFF':
-            Minder.reset_mouse_position()
             drag_flag = False
 
         if show_screen and has_changed:
