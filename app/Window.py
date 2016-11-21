@@ -25,7 +25,7 @@ class Window:
         self.toFullscreen = 0
         self.tileset = None
         pygame.display.set_caption("PyGame Window")
-        pygame.mouse.set_cursor(*Window.get_cursor_data())
+        pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
         pygame.key.set_repeat(200, 50)
 
@@ -187,8 +187,27 @@ class Window:
         Params.map_add_surface_offset = first_tile * Params.map_tilesize
 
     @staticmethod
-    def get_cursor_data():
-        cursor_strings = (  # sized 16x16
+    def get_cursor_data(_this_one):
+        cursors = {}
+        cursors['lmb'] = (  # sized 16x16
+            "   XX           ",
+            "  X..X          ",
+            "  X..X          ",
+            "  X..X          ",
+            "   X..X XXXX    ",
+            "   X..XX..X.XX  ",
+            "   XX..X..X.X.X ",
+            "  X.X..X..X.X.X ",
+            " X..X.........X ",
+            " X............X ",
+            "  X....X.X.X..X ",
+            "  X....X.X.X..X ",
+            "   X...X.X.X.X  ",
+            "    X........X  ",
+            "     X....X.X   ",
+            "     XXXXX XX   ")
+
+        cursors['std'] = (  # sized 16x16
             "   XX           ",
             "  X..X          ",
             "  X..X          ",
@@ -205,8 +224,9 @@ class Window:
             "    X........X  ",
             "     X....X.X   ",
             "     XXXXX XX   ")
-        _cur_file, _cur_mask = pygame.cursors.compile(cursor_strings, '.', 'X')
-        return ((16, 16), (3, 1), _cur_file, _cur_mask)
+
+        _cur_file, _cur_mask = pygame.cursors.compile(cursors[_this_one], 'X', '.')
+        return (16, 16), (3, 1), _cur_file, _cur_mask
 
     @staticmethod
     def destroy():
