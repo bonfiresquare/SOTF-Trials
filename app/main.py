@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import time
+import datetime
 from Window import *
 from Params import *
 from Minder import *
 from Tools import *
-import time
-import datetime
 
 
 #  _________________________________________________________ #
@@ -84,6 +84,7 @@ def main():
                 has_changed = True
 
         if user_input == 'DRAGGING_OFF':
+            Minder.reset_mouse_position()
             drag_flag = False
 
         if show_screen and has_changed:
@@ -101,7 +102,7 @@ def main():
                               Tools.clip(general_offset[1], min_offset[1], _display_half[1]))
 
             Params.map_current_offset = general_offset
-            print(general_offset)
+
             win.clear_screen()
             win.draw_tileset()
 
