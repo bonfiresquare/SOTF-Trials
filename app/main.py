@@ -103,7 +103,7 @@ def main():
             Params.map_current_offset = general_offset
 
             win.clear_screen()
-            win.draw_tileset()
+            win.render_screen()
 
             has_changed = False
 
