@@ -26,6 +26,11 @@ class Window:
         self.toFullscreen = 0
         self.tileset = None
         self.curr_creature = Creature()
+        self.map_surface = pygame.Surface(Params.map_size)
+        self.curr_map_surface = pygame.Surface(Params.map_size)
+        self.buffer_surface = pygame.Surface((1, 1))
+        self.buffer_surface.set_colorkey(Params.buffer_color_key)
+        self.buffer_antial_surface = self.buffer_surface.copy()
         pygame.display.set_caption("PyGame Window")
         pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
@@ -99,19 +104,15 @@ class Window:
         surf_width = Params.map_size[0]
         surf_height = Params.map_size[1]
 
-        # center map surface offset position
+        # center initial map surface offset position
         Params.map_current_offset = (screen_center[0] - (surf_width / 2),
                                      screen_center[1] - (surf_height / 2))
 
-        # create surface and fill every pixels with tile colors
-        self.map_surface = pygame.Surface((surf_width, surf_height))
-        for x in range(surf_width):
-            for y in range(surf_height):
+        # fill each pixel of map surface with tile color
+        for x in range(Params.map_size[0]):
+            for y in range(Params.map_size[1]):
                 tile_color = self.tileset.get_color_of(x, y)
                 self.map_surface.set_at((x, y), tile_color)
-
-        # initialize current map section
-        self.curr_map_surface = self.map_surface.copy()
 
     def get_centered_zoom_offset(self, _old_tile_size, _new_tile_size):
         screen_center = (ceil(self.size[0] / 2), ceil(self.size[1] / 2))
@@ -128,13 +129,8 @@ class Window:
         # print('New offset: ',new_offset)
         return new_offset
 
-    def get_tile_by_map_position(self, _position):
-        curr_tile = (ceil(_position[0] / Params.map_tilesize),
-                     ceil(_position[1] / Params.map_tilesize))
-        return curr_tile
-
     def get_first_displayed_tile(self):
-        # get (first displayed pixel of map) - render margin
+        # get first pixel to display
         curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
         curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
 
@@ -146,11 +142,11 @@ class Window:
         first_y = self.get_tile_by_map_position((0, curr_y))
         y = Tools.clip(first_y[1], 0, Params.map_size[1])
 
-        first_tile = (x,y)
+        first_tile = (x, y)
         return first_tile
 
     def get_last_displayed_tile(self):
-        # get (last displayed pixel of map) + render margin
+        # get last pixel to display
         curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
         curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
 
@@ -164,6 +160,39 @@ class Window:
 
         last_tile = (x, y)
         return last_tile
+
+    def rect_is_on_curr_map(self, _rect):  # returns weather the input position is on curr_map_surface
+        # _rect is a rectangle positioned on the map at tilesize = max_tilesize
+
+        for i in range(4):  # repeat for all 4 corners of _rect
+
+            if i == 0:
+                curr_pos = _rect.topleft
+            elif i == 1:
+                curr_pos = _rect.topright
+            elif i == 2:
+                curr_pos = _rect.bottomleft
+            else:
+                curr_pos = _rect.bottomright
+
+            # get _map_position for current scaling
+            curr_x = round((curr_pos[0] / Params.map_max_tilesize) * Params.map_tilesize)
+            curr_y = round((curr_pos[1] / Params.map_max_tilesize) * Params.map_tilesize)
+
+            # get first and last rendered pixels relative to map_curr_offset
+            first_pixel = self.get_first_displayed_tile()
+            first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
+            last_pixel = self.get_last_displayed_tile()
+            last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
+
+            # check if position is on curr_map_surface
+            if ((curr_x >= first_pixel[0]) and
+                    (curr_y >= first_pixel[1]) and
+                    (curr_x <= last_pixel[0]) and
+                    (curr_y <= last_pixel[1])):
+                return True
+
+        return False
 
     def render_curr_map_surface(self):
         # get first displayed tile
@@ -186,36 +215,95 @@ class Window:
         # update additional surface offset
         Params.map_add_surface_offset = (first_tile[0] * Params.map_tilesize, first_tile[1] * Params.map_tilesize)
 
-    def render_creatures(self):         # calls render_creature for every visible creature
+    def render_buffer_to_curr_map(self, _map_position, _max_size):  # scales + renders buffer_surface to a map position
+        # _map_position is the centered position of where to draw buffer_surface to the map (at tilesize = max_tilesize)
+        # _max_size is the target size of buffer_surface (at tilesize = max_tilesize)
+        orig_size = self.buffer_surface.get_size()
+        if (orig_size[0] == 0) or (orig_size[1] == 0):  # check if buffer has length|width == 0
+            return
+
+        rect = pygame.Rect(_map_position, _max_size)
+        if not self.rect_is_on_curr_map(rect):  # check if buffer would be on curr. rendered map surface
+            return
+
+        # get first rendered pixel relative to map_curr_offset
+        first_pixel = self.get_first_displayed_tile()
+        first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
+
+        # get position (top-left pixel) relative to map_current_offset
+        scaled_pos = (round(((_map_position[0] - (_max_size[0] / 2)) / Params.map_max_tilesize) * Params.map_tilesize),
+                      round(((_map_position[1] - (_max_size[1] / 2)) / Params.map_max_tilesize) * Params.map_tilesize))
+
+        # get position relative to curr. displayed map surface (curr_map_surface)
+        render_pos = (scaled_pos[0] - first_pixel[0], scaled_pos[1] - first_pixel[1])
+
+        # scale the original size (max_tilesize) to the current zoom (tilesize)
+        render_size = (round((_max_size[0] / Params.map_max_tilesize) * Params.map_tilesize),
+                       round((_max_size[1] / Params.map_max_tilesize) * Params.map_tilesize))
+
+        if Params.buffer_antialiasing:
+            # create rect, whose inside is the area of the curr_map where the buffer will be rendered
+            antial_rect = pygame.Rect(render_pos, render_size)
+            curr_map_rect = pygame.Rect((0, 0), self.curr_map_surface.get_size())
+            antial_rect = curr_map_rect.clip(antial_rect)  # gets the intersection
+            self.buffer_antial_surface = self.curr_map_surface.subsurface(antial_rect)
+            self.buffer_antial_surface = pygame.transform.scale(self.buffer_antial_surface, orig_size)
+            self.buffer_antial_surface.blit(self.buffer_surface, (0, 0))
+            # self.buffer_antial_surface = pygame.transform.smoothscale(self.buffer_antial_surface,  # has no affect
+            #                                                           (orig_size[0] * 2, orig_size[1] * 2))
+            self.buffer_antial_surface = pygame.transform.smoothscale(self.buffer_antial_surface, render_size)
+
+            # draw the antialiased buffer_surface to the curr_map_surface
+            self.curr_map_surface.blit(self.buffer_antial_surface, render_pos)
+        else:
+            self.buffer_surface = pygame.transform.scale(self.buffer_surface, render_size)
+
+            # draw the buffer_surface to the curr_map_surface
+            self.curr_map_surface.blit(self.buffer_surface, render_pos)
+
+    def render_creatures(self):  # calls render_creature for every visible creature
         self.create_dummy_creature()
         self.render_curr_creature()
 
     def render_curr_creature(self):  # renders creature on curr_map_surface
-        total_x = round((self.curr_creature.x / Params.map_max_tilesize) * Params.map_tilesize)
-        total_y = round((self.curr_creature.y / Params.map_max_tilesize) * Params.map_tilesize)
-        radius = round(((self.curr_creature.size / 2) / Params.map_max_tilesize) * Params.map_tilesize)
-        width = 0
+        # specify parameters
+        if Params.buffer_antialiasing:
+            radius = self.curr_creature.size     # double circle radius for better antialiasing
+        else:
+            radius = round(self.curr_creature.size / 2)
+        size = (radius * 2 + 1, radius * 2 + 1)  # 1 tolerance pixel to avoid later rounding issues (position- and
+        pos = (radius, radius)                   # radius-precision are not affected
+        border_width = 0
 
-        # get first and last rendered pixels relative to map_curr_offset
-        first_pixel = self.get_first_displayed_tile()
-        first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
-        last_pixel = self.get_last_displayed_tile()
-        last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
+        # check if creature is on curr. rendered map surface
+        rect = pygame.Rect(self.curr_creature.x, self.curr_creature.y,
+                           size[0], size[1])
+        if not self.rect_is_on_curr_map(rect):
+            return
 
-        # check if creature is on curr_map_surface
-        if ((total_x >= first_pixel[0]) and
-                (total_y >= first_pixel[1]) and
-                (total_x <= last_pixel[0]) and
-                (total_y <= last_pixel[1])):
-            render_pos = (total_x - first_pixel[0],
-                          total_y - first_pixel[1])
-            pygame.draw.circle(self.curr_map_surface, self.curr_creature.color, render_pos, radius, width)
+        # adjust buffer_surface
+        # fill buffer with transparent color key:
+        self.buffer_surface.fill(Params.buffer_color_key)
+        # scale buffer to creature size:
+        self.buffer_surface = pygame.transform.scale(self.buffer_surface, size)
+        # draw circle at buffer
+        pygame.draw.circle(self.buffer_surface, self.curr_creature.color, pos, radius, border_width)
 
-    def create_dummy_creature(self): # will later be read from creature list
-        self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize
-        self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize
+        # render buffer_surface on curr_map_surface
+        self.render_buffer_to_curr_map((self.curr_creature.x, self.curr_creature.y),
+                                       (self.curr_creature.size, self.curr_creature.size))
+
+    def create_dummy_creature(self):  # created dummy creature in the center of the map
+        self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize + 10
+        self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize + 10
         self.curr_creature.color = pygame.Color(255, 0, 0)
         self.curr_creature.size = Params.map_max_tilesize
+
+    @staticmethod
+    def get_tile_by_map_position(_position):
+        curr_tile = (ceil(_position[0] / Params.map_tilesize),
+                     ceil(_position[1] / Params.map_tilesize))
+        return curr_tile
 
     @staticmethod
     def get_cursor_data(_this_one):
