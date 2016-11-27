@@ -10,6 +10,7 @@ what makes this map generator a base for all upcoming ideas and other features.
 So all you need (for now) to get it work are the modules:
 - 'pygame'
 - 'noise'
+
 ___
 
 The application is started by clicking on main.py
