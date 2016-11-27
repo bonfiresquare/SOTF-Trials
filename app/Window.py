@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pickle
 from map.Tileset import *
 from Params import *
 from Creature import *
 from math import fabs
+from math import floor
 
 
 #  _________________________________________________________ #
@@ -21,19 +23,46 @@ class Window:
     def __init__(self):
         pygame.init()
         self.clk = pygame.time.Clock()
+        self.fps = 0
         self.size = Params.window_size
         self.screen = pygame.display.set_mode(self.size)
+        self.caption = "Pygame Window"
         self.toFullscreen = 0
         self.tileset = None
+        self.map_surface = None
+        self.curr_map_surface = None
         self.curr_creature = Creature()
-        pygame.display.set_caption("PyGame Window")
+        pygame.display.set_caption(self.caption)
         pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
-        pygame.key.set_repeat(200, 50)
+        pygame.key.set_repeat(200, 10)
+
+    @staticmethod
+    def save():
+        _win = Window.__instance
+        # clocks don't wanna be saved
+        _clk = _win.clk
+        _win.clk = None
+        with open("savegame", "wb") as file:
+            pickle.dump(_win, file)
+        _win.clk = _clk
+
+    @staticmethod
+    def load():
+        # FIXME: execution fails after loading, try to save only relevant things (eg heightmap)
+        with open("savegame", "rb") as file:
+            Window.__instance = pickle.load(file)
+            Window.__instance.clk = pygame.time.Clock()
 
     def update(self):
-        self.clk.tick(30)
+        self.clk.tick(60)
         pygame.display.flip()
+        # update FPS ticker in window caption
+        _fps = int(self.clk.get_fps())
+        if not self.fps == _fps:
+            self.fps = _fps
+            _fps_string = ' - ' + str(self.fps) + ' FPS'
+            pygame.display.set_caption(self.caption + _fps_string)
 
     def create_map(self):
         self.tileset = Tileset(Params.map_size[0],
@@ -78,8 +107,6 @@ class Window:
         self.size = (pygame.display.Info().current_w,
                      pygame.display.Info().current_h)
 
-        Params.calc_min_tilesize(self.get_display_size())
-
         pygame.display.set_caption(*caption)
         pygame.key.set_mods(0)
         pygame.mouse.set_cursor(*cursor)
@@ -115,11 +142,11 @@ class Window:
 
     def get_centered_zoom_offset(self, _old_tile_size, _new_tile_size):
         screen_center = (ceil(self.size[0] / 2), ceil(self.size[1] / 2))
-        curr_offset = Params.map_current_offset
+        _curr_offset = Params.map_current_offset
 
         # get pixel position of screen center relative to offset/map position
-        center_map_surface = (abs(curr_offset[0] - screen_center[0]),
-                              abs(curr_offset[1] - screen_center[1]))
+        center_map_surface = (abs(_curr_offset[0] - screen_center[0]),
+                              abs(_curr_offset[1] - screen_center[1]))
 
         # calculate new offset to keep the current screen center
         new_offset = (round(screen_center[0] - (center_map_surface[0] * (_new_tile_size / _old_tile_size))),
@@ -128,48 +155,39 @@ class Window:
         # print('New offset: ',new_offset)
         return new_offset
 
-    def get_tile_by_map_position(self, _position):
+    @staticmethod
+    def get_tile_by_map_position(_position):
         curr_tile = (ceil(_position[0] / Params.map_tilesize),
                      ceil(_position[1] / Params.map_tilesize))
         return curr_tile
 
-    def get_first_displayed_tile(self):
+    def get_displayed_tile(self, _which_one):
+
         # get (first displayed pixel of map) - render margin
-        curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
+        if _which_one == 'FIRST':
+            curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
+            curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
 
-        # find first x-position tile:
-        first_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(first_x[0], 0, Params.map_size[0])
-
-        # find first y-position:
-        first_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(first_y[1], 0, Params.map_size[1])
-
-        first_tile = (x,y)
-        return first_tile
-
-    def get_last_displayed_tile(self):
         # get (last displayed pixel of map) + render margin
-        curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
+        else:   # _which_one == 'LAST':
+            curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
+            curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
 
         # find last x-position
-        last_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(last_x[0], 0, Params.map_size[0])
+        _x = Window.get_tile_by_map_position((curr_x, 0))
+        x = Tools.clip(_x[0], 0, Params.map_size[0])
 
         # find last y-position
-        last_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(last_y[1], 0, Params.map_size[1])
+        _y = Window.get_tile_by_map_position((0, curr_y))
+        y = Tools.clip(_y[1], 0, Params.map_size[1])
 
-        last_tile = (x, y)
-        return last_tile
+        return x, y
 
     def render_curr_map_surface(self):
         # get first displayed tile
-        first_tile = self.get_first_displayed_tile()
+        first_tile = self.get_displayed_tile('FIRST')
         # get last displayed tile
-        last_tile = self.get_last_displayed_tile()
+        last_tile = self.get_displayed_tile('LAST')
 
         new_width = (last_tile[0] - first_tile[0])
         new_height = (last_tile[1] - first_tile[1])
