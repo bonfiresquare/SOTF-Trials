@@ -53,6 +53,9 @@ def main():
             win.create_map()
             has_changed = True
 
+        if user_input == 'TOGGLE_ANTIALIASING':
+            Params.buffer_antialiasing = not Params.buffer_antialiasing
+
         if user_input[0:4] == 'ZOOM':
             old_tilesize = Params.map_tilesize
             if user_input == 'ZOOM_IN':

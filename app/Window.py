@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pickle
 from map.Tileset import *
 from Params import *
 from Creature import *
 from math import fabs
+from math import floor
+from random import randint
 
 
 #  _________________________________________________________ #
@@ -21,10 +24,14 @@ class Window:
     def __init__(self):
         pygame.init()
         self.clk = pygame.time.Clock()
+        self.fps = 0
         self.size = Params.window_size
         self.screen = pygame.display.set_mode(self.size)
+        self.caption = "Pygame Window"
         self.toFullscreen = 0
         self.tileset = None
+        self.map_surface = None
+        self.curr_map_surface = None
         self.curr_creature = Creature()
         self.map_surface = pygame.Surface(Params.map_size)
         self.curr_map_surface = pygame.Surface(Params.map_size)
@@ -34,11 +41,34 @@ class Window:
         pygame.display.set_caption("PyGame Window")
         pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
-        pygame.key.set_repeat(200, 50)
+        pygame.key.set_repeat(200, 10)
+
+    @staticmethod
+    def save():
+        _win = Window.__instance
+        # clocks don't wanna be saved
+        _clk = _win.clk
+        _win.clk = None
+        with open("savegame", "wb") as file:
+            pickle.dump(_win, file)
+        _win.clk = _clk
+
+    @staticmethod
+    def load():
+        # FIXME: execution fails after loading, try to save only relevant things (eg heightmap)
+        with open("savegame", "rb") as file:
+            Window.__instance = pickle.load(file)
+            Window.__instance.clk = pygame.time.Clock()
 
     def update(self):
-        self.clk.tick(30)
+        self.clk.tick(60)
         pygame.display.flip()
+        # update FPS ticker in window caption
+        _fps = int(self.clk.get_fps())
+        if not self.fps == _fps:
+            self.fps = _fps
+            _fps_string = ' - ' + str(self.fps) + ' FPS'
+            pygame.display.set_caption(self.caption + _fps_string)
 
     def create_map(self):
         self.tileset = Tileset(Params.map_size[0],
@@ -82,8 +112,6 @@ class Window:
 
         self.size = (pygame.display.Info().current_w,
                      pygame.display.Info().current_h)
-
-        Params.calc_min_tilesize(self.get_display_size())
 
         pygame.display.set_caption(*caption)
         pygame.key.set_mods(0)
@@ -200,17 +228,21 @@ class Window:
         # get last displayed tile
         last_tile = self.get_last_displayed_tile()
 
-        new_width = (last_tile[0] - first_tile[0])
-        new_height = (last_tile[1] - first_tile[1])
+        width = (last_tile[0] - first_tile[0])
+        height = (last_tile[1] - first_tile[1])
 
         # scale curr_map to the viewn section and insert map section
-        self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (new_width, new_height))
-        self.curr_map_surface.blit(self.map_surface, (0, 0), (first_tile, last_tile))
+        # self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (width, height))
+        # self.curr_map_surface.blit(self.map_surface, (0, 0), (first_tile, last_tile))
+
+        # alternative: define curr_map_surface as subsurface of map_surface
+        curr_rect = pygame.Rect(first_tile, (width, height))
+        self.curr_map_surface = self.map_surface.subsurface(curr_rect)
 
         # scale curr_map to the tile size
-        new_width *= Params.map_tilesize
-        new_height *= Params.map_tilesize
-        self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (new_width, new_height))
+        width *= Params.map_tilesize
+        height *= Params.map_tilesize
+        self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (width, height))
 
         # update additional surface offset
         Params.map_add_surface_offset = (first_tile[0] * Params.map_tilesize, first_tile[1] * Params.map_tilesize)
@@ -262,8 +294,9 @@ class Window:
             self.curr_map_surface.blit(self.buffer_surface, render_pos)
 
     def render_creatures(self):  # calls render_creature for every visible creature
-        self.create_dummy_creature()
-        self.render_curr_creature()
+        for i in range(10):
+            self.create_dummy_creature()
+            self.render_curr_creature()
 
     def render_curr_creature(self):  # renders creature on curr_map_surface
         # specify parameters
@@ -294,10 +327,12 @@ class Window:
                                        (self.curr_creature.size, self.curr_creature.size))
 
     def create_dummy_creature(self):  # created dummy creature in the center of the map
-        self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize + 10
-        self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize + 10
-        self.curr_creature.color = pygame.Color(255, 0, 0)
-        self.curr_creature.size = Params.map_max_tilesize
+        # self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize + 10
+        # self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize + 10
+        self.curr_creature.x = randint(0, Params.map_size[0] * Params.map_max_tilesize)
+        self.curr_creature.y = randint(0, Params.map_size[1] * Params.map_max_tilesize)
+        self.curr_creature.color = pygame.Color(randint(0, 255), randint(0, 255), randint(0, 255))
+        self.curr_creature.size = randint(round(Params.map_max_tilesize / 3), Params.map_max_tilesize * 2)
 
     @staticmethod
     def get_tile_by_map_position(_position):

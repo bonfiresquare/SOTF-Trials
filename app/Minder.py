@@ -35,6 +35,8 @@ class Minder(ABC):
                     output = 'CLEAR'
                 elif event.key == pygame.K_F5:
                     output = 'DRAW'
+                elif event.key == pygame.K_F10:
+                    output = 'TOGGLE_ANTIALIASING'  # shortcut key for experimental purpose
                 elif event.key == pygame.K_F11:
                     output = 'TOGGLE_FULLSCREEN'
                 elif event.key == pygame.K_F12:

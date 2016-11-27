@@ -32,7 +32,7 @@ class Params(ABC):
     map_add_surface_offset = (0, 0)  # additional surface offset (relative to current offset)
     win_render_margin = 40           # rendered margin around the visible map - should be map_max_tilesize
 
-    buffer_antialiasing = True         # False = better performance
+    buffer_antialiasing = False        # False = better performance
     buffer_color_key = (255, 0, 255)   # the color that will become transparent when rendered
 
     @staticmethod
