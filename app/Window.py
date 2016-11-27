@@ -157,34 +157,25 @@ class Window:
         # print('New offset: ',new_offset)
         return new_offset
 
-    def get_first_displayed_tile(self):
-        # get first pixel to display
-        curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
+    def get_displayed_tile(self, _which_one):
 
-        # find first x-position tile:
-        first_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(first_x[0], 0, Params.map_size[0])
+        # get (first displayed pixel of map) - render margin
+        if _which_one == 'FIRST':
+            curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
+            curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
 
-        # find first y-position:
-        first_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(first_y[1], 0, Params.map_size[1])
-
-        first_tile = (x, y)
-        return first_tile
-
-    def get_last_displayed_tile(self):
-        # get last pixel to display
-        curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
-        curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
+        # get (last displayed pixel of map) + render margin
+        else:   # _which_one == 'LAST':
+            curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
+            curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
 
         # find last x-position
-        last_x = self.get_tile_by_map_position((curr_x, 0))
-        x = Tools.clip(last_x[0], 0, Params.map_size[0])
+        _x = Window.get_tile_by_map_position((curr_x, 0))
+        x = Tools.clip(_x[0], 0, Params.map_size[0])
 
         # find last y-position
-        last_y = self.get_tile_by_map_position((0, curr_y))
-        y = Tools.clip(last_y[1], 0, Params.map_size[1])
+        _y = Window.get_tile_by_map_position((0, curr_y))
+        y = Tools.clip(_y[1], 0, Params.map_size[1])
 
         last_tile = (x, y)
         return last_tile
@@ -208,9 +199,9 @@ class Window:
             curr_y = round((curr_pos[1] / Params.map_max_tilesize) * Params.map_tilesize)
 
             # get first and last rendered pixels relative to map_curr_offset
-            first_pixel = self.get_first_displayed_tile()
+            first_pixel = self.get_displayed_tile('FIRST')
             first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
-            last_pixel = self.get_last_displayed_tile()
+            last_pixel = self.get_displayed_tile('LAST')
             last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
 
             # check if position is on curr_map_surface
@@ -224,9 +215,9 @@ class Window:
 
     def render_curr_map_surface(self):
         # get first displayed tile
-        first_tile = self.get_first_displayed_tile()
+        first_tile = self.get_displayed_tile('FIRST')
         # get last displayed tile
-        last_tile = self.get_last_displayed_tile()
+        last_tile = self.get_displayed_tile('LAST')
 
         width = (last_tile[0] - first_tile[0])
         height = (last_tile[1] - first_tile[1])
@@ -259,7 +250,7 @@ class Window:
             return
 
         # get first rendered pixel relative to map_curr_offset
-        first_pixel = self.get_first_displayed_tile()
+        first_pixel = self.get_displayed_tile('FIRST')
         first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
 
         # get position (top-left pixel) relative to map_current_offset
@@ -294,7 +285,7 @@ class Window:
             self.curr_map_surface.blit(self.buffer_surface, render_pos)
 
     def render_creatures(self):  # calls render_creature for every visible creature
-        for i in range(10):
+        for i in range(1):
             self.create_dummy_creature()
             self.render_curr_creature()
 
@@ -327,12 +318,16 @@ class Window:
                                        (self.curr_creature.size, self.curr_creature.size))
 
     def create_dummy_creature(self):  # created dummy creature in the center of the map
-        # self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize + 10
-        # self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize + 10
-        self.curr_creature.x = randint(0, Params.map_size[0] * Params.map_max_tilesize)
-        self.curr_creature.y = randint(0, Params.map_size[1] * Params.map_max_tilesize)
-        self.curr_creature.color = pygame.Color(randint(0, 255), randint(0, 255), randint(0, 255))
-        self.curr_creature.size = randint(round(Params.map_max_tilesize / 3), Params.map_max_tilesize * 2)
+        self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize + 10
+        self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize + 10
+        self.curr_creature.color = pygame.Color(255, 255, 0)
+        self.curr_creature.size = round(Params.map_max_tilesize / 1.5)
+
+        # random creatures (for performance testing):
+        # self.curr_creature.x = randint(0, Params.map_size[0] * Params.map_max_tilesize)
+        # self.curr_creature.y = randint(0, Params.map_size[1] * Params.map_max_tilesize)
+        # self.curr_creature.color = pygame.Color(randint(0, 255), randint(0, 255), randint(0, 255))
+        # self.curr_creature.size = randint(round(Params.map_max_tilesize / 3), Params.map_max_tilesize * 2)
 
     @staticmethod
     def get_tile_by_map_position(_position):
