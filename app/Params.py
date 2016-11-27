@@ -13,14 +13,14 @@ import pygame
 class Params(ABC):
 
     window_size = (1200, 800)
-    map_size = (500, 500)       # default = (250, 250)
-    map_tilesize = 2            # default = 10
-    map_stepping = 16           # default = 10
-    map_freq_multiplier = 0.7   # default = 0.8
-    map_octaves = 64            # default = 64
+    map_size = (300, 200)  # default = (600, 400)
+    map_tilesize = round(window_size[0] / map_size[0])  # default = 1
+    map_stepping = 16  # default = 10
+    map_freq_multiplier = 0.7  # default = 0.7
+    map_octaves = 64  # default = 64
 
-    map_min_tilesize = 1        # default = 2
-    map_max_tilesize = 20       # default = 40
+    map_min_tilesize = 1      # default = 2
+    map_max_tilesize = 20     # default = 40
 
     # height < map_waterlevel = water
     # height < map_grasslevel && > map_waterlevel = grass
@@ -30,7 +30,7 @@ class Params(ABC):
 
     map_current_offset = (0, 0)
     map_add_surface_offset = (0, 0)  # additional surface offset (relative to current offset)
-    win_render_margin = 40           # rendered margin around the visible map - needed to avoid missing tiles
+    win_render_margin = 20           # rendered margin around the visible map - should be map_max_tilesize
 
     @staticmethod
     def scale_tilesize(_whereto):

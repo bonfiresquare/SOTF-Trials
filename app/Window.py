@@ -4,6 +4,7 @@ import pygame
 import pickle
 from map.Tileset import *
 from Params import *
+from Creature import *
 from math import fabs
 from math import floor
 
@@ -30,6 +31,7 @@ class Window:
         self.tileset = None
         self.map_surface = None
         self.curr_map_surface = None
+        self.curr_creature = Creature()
         pygame.display.set_caption(self.caption)
         pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
@@ -38,6 +40,7 @@ class Window:
     @staticmethod
     def save():
         _win = Window.__instance
+        # clocks don't wanna be saved
         _clk = _win.clk
         _win.clk = None
         with open("savegame", "wb") as file:
@@ -46,6 +49,7 @@ class Window:
 
     @staticmethod
     def load():
+        # FIXME: execution fails after loading, try to save only relevant things (eg heightmap)
         with open("savegame", "rb") as file:
             Window.__instance = pickle.load(file)
             Window.__instance.clk = pygame.time.Clock()
@@ -53,6 +57,7 @@ class Window:
     def update(self):
         self.clk.tick(60)
         pygame.display.flip()
+        # update FPS ticker in window caption
         _fps = int(self.clk.get_fps())
         if not self.fps == _fps:
             self.fps = _fps
@@ -71,10 +76,11 @@ class Window:
 
         self.create_map_surface()
         Params.map_current_offset = self.get_centered_zoom_offset(1, Params.map_tilesize)  # center map zoom
-        self.draw_tileset()  # draw map on screen
+        self.render_screen()  # draw map on screen
 
-    def draw_tileset(self):
+    def render_screen(self):
         self.render_curr_map_surface()
+        self.render_creatures()
         curr_offset = (Params.map_current_offset[0] + Params.map_add_surface_offset[0],
                        Params.map_current_offset[1] + Params.map_add_surface_offset[1])
         self.screen.blit(self.curr_map_surface, curr_offset)  # display current map on screen
@@ -197,6 +203,37 @@ class Window:
 
         # update additional surface offset
         Params.map_add_surface_offset = (first_tile[0] * Params.map_tilesize, first_tile[1] * Params.map_tilesize)
+
+    def render_creatures(self):         # calls render_creature for every visible creature
+        self.create_dummy_creature()
+        self.render_curr_creature()
+
+    def render_curr_creature(self):  # renders creature on curr_map_surface
+        total_x = round((self.curr_creature.x / Params.map_max_tilesize) * Params.map_tilesize)
+        total_y = round((self.curr_creature.y / Params.map_max_tilesize) * Params.map_tilesize)
+        radius = round(((self.curr_creature.size / 2) / Params.map_max_tilesize) * Params.map_tilesize)
+        width = 0
+
+        # get first and last rendered pixels relative to map_curr_offset
+        first_pixel = self.get_first_displayed_tile()
+        first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
+        last_pixel = self.get_last_displayed_tile()
+        last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
+
+        # check if creature is on curr_map_surface
+        if ((total_x >= first_pixel[0]) and
+                (total_y >= first_pixel[1]) and
+                (total_x <= last_pixel[0]) and
+                (total_y <= last_pixel[1])):
+            render_pos = (total_x - first_pixel[0],
+                          total_y - first_pixel[1])
+            pygame.draw.circle(self.curr_map_surface, self.curr_creature.color, render_pos, radius, width)
+
+    def create_dummy_creature(self): # will later be read from creature list
+        self.curr_creature.x = (Params.map_size[0] / 2) * Params.map_max_tilesize
+        self.curr_creature.y = (Params.map_size[1] / 2) * Params.map_max_tilesize
+        self.curr_creature.color = pygame.Color(255, 0, 0)
+        self.curr_creature.size = Params.map_max_tilesize
 
     @staticmethod
     def get_cursor_data(_this_one):
