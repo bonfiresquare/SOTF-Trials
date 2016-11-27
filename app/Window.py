@@ -215,9 +215,9 @@ class Window:
         width = 0
 
         # get first and last rendered pixels relative to map_curr_offset
-        first_pixel = self.get_first_displayed_tile()
+        first_pixel = self.get_displayed_tile('FIRST')
         first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
-        last_pixel = self.get_last_displayed_tile()
+        last_pixel = self.get_displayed_tile('LAST')
         last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
 
         # check if creature is on curr_map_surface
