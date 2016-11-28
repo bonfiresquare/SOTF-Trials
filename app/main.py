@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import time
 import datetime
 from Window import *
 from Params import *
@@ -13,6 +12,9 @@ from Tools import *
 # TODO: outsource the renderer stuff into an extra class
 # TODO: reorganize the Tools classes for better distinction
 
+
+#  _________________________________________________________ #
+# ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define file class ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
 
 class Program:
     __instance = None
@@ -30,7 +32,6 @@ class Program:
     def __init__(self):
         self.win = Window()
         self.win.create_map()
-
         self.user_input = ''
         self.show_screen = True
         self.has_changed = True
@@ -38,7 +39,13 @@ class Program:
         self.arrow_move_speed = 20
         self.drag_flag = False
 
-        self._task = {
+
+#  _________________________________________________________ #
+# ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define mainloop ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
+
+    def main(self):
+
+        _task = {
             'QUIT': self._quit,
             'SAVE': self._save,
             'LOAD': self._load,
@@ -56,19 +63,14 @@ class Program:
             'DRAG_ON': self._drag,
             'DRAG_OFF': self._drag_off,
             'CAPTURE': self._capture,
-            '': lambda: 'pass'
+            '': lambda: 'nothing'
         }
 
-#  _________________________________________________________ #
-# ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define mainloop ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #
-
-    def main(self):
         while self.win:
             self.win.update()
 
             self.user_input = Minder.have_a_look()
-
-            self._task[self.user_input]()
+            _task[self.user_input]()
 
             if self.drag_flag:
                 self._drag()
