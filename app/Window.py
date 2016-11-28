@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import pygame
-import pickle
-from map.Tileset import *
-from Params import *
-from Creature import *
 from math import fabs
 from math import floor
 from random import randint
+import pickle
+import pygame
+from map.Tileset import *
+from Params import *
+from Creature import *
 
 
 #  _________________________________________________________ #
@@ -33,11 +33,12 @@ class Window:
         self.map_surface = None
         self.curr_map_surface = None
         self.curr_creature = Creature()
+        pygame.display.set_caption(self.caption)
         self.map_surface = pygame.Surface(Params.map_size)
         self.curr_map_surface = pygame.Surface(Params.map_size)
         self.buffer_surface = pygame.Surface((1, 1))
         self.buffer_surface.set_colorkey(Params.buffer_color_key)
-        self.buffer_antial_surface = self.buffer_surface.copy()
+        self.buffer_aa_surface = self.buffer_surface.copy()
         pygame.display.set_caption("PyGame Window")
         pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
         pygame.mouse.set_visible(1)
@@ -144,11 +145,11 @@ class Window:
 
     def get_centered_zoom_offset(self, _old_tile_size, _new_tile_size):
         screen_center = (ceil(self.size[0] / 2), ceil(self.size[1] / 2))
-        curr_offset = Params.map_current_offset
+        _curr_offset = Params.map_current_offset
 
         # get pixel position of screen center relative to offset/map position
-        center_map_surface = (abs(curr_offset[0] - screen_center[0]),
-                              abs(curr_offset[1] - screen_center[1]))
+        center_map_surface = (abs(_curr_offset[0] - screen_center[0]),
+                              abs(_curr_offset[1] - screen_center[1]))
 
         # calculate new offset to keep the current screen center
         new_offset = (round(screen_center[0] - (center_map_surface[0] * (_new_tile_size / _old_tile_size))),
@@ -157,17 +158,28 @@ class Window:
         # print('New offset: ',new_offset)
         return new_offset
 
-    def get_displayed_tile(self, _which_one):
+    @staticmethod
+    def get_tile_by_map_position(_position):
+        curr_tile = (ceil(_position[0] / Params.map_tilesize),
+                     ceil(_position[1] / Params.map_tilesize))
+        return curr_tile
 
+    def get_displayed_tile(self, _which_one):
         # get (first displayed pixel of map) - render margin
         if _which_one == 'FIRST':
             curr_x = (Params.map_current_offset[0] * (-1)) - Params.win_render_margin
             curr_y = (Params.map_current_offset[1] * (-1)) - Params.win_render_margin
 
         # get (last displayed pixel of map) + render margin
-        else:   # _which_one == 'LAST':
+        elif _which_one == 'LAST':
             curr_x = (Params.map_current_offset[0] * (-1)) + self.size[0] + Params.win_render_margin
             curr_y = (Params.map_current_offset[1] * (-1)) + self.size[1] + Params.win_render_margin
+
+        else:
+            try:
+                raise NotImplementedError('!!! Check usage of FIRST and LAST parameters in Window.get_displayed_tile()')
+            except NotImplementedError as e:
+                print(e)
 
         # find last x-position
         _x = Window.get_tile_by_map_position((curr_x, 0))
@@ -177,22 +189,19 @@ class Window:
         _y = Window.get_tile_by_map_position((0, curr_y))
         y = Tools.clip(_y[1], 0, Params.map_size[1])
 
-        last_tile = (x, y)
-        return last_tile
+        return x, y
 
-    def rect_is_on_curr_map(self, _rect):  # returns weather the input position is on curr_map_surface
+    def rect_is_on_curr_map(self, _rect):  # returns if the input position is on curr_map_surface
         # _rect is a rectangle positioned on the map at tilesize = max_tilesize
 
-        for i in range(4):  # repeat for all 4 corners of _rect
+        _corner = {0: _rect.topleft,
+                   1: _rect.topright,
+                   2: _rect.bottomleft,
+                   3: _rect.bottomright}
 
-            if i == 0:
-                curr_pos = _rect.topleft
-            elif i == 1:
-                curr_pos = _rect.topright
-            elif i == 2:
-                curr_pos = _rect.bottomleft
-            else:
-                curr_pos = _rect.bottomright
+        for i in _corner:  # repeat for all 4 corners of _rect
+
+            curr_pos = _corner[i]
 
             # get _map_position for current scaling
             curr_x = round((curr_pos[0] / Params.map_max_tilesize) * Params.map_tilesize)
@@ -205,10 +214,8 @@ class Window:
             last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
 
             # check if position is on curr_map_surface
-            if ((curr_x >= first_pixel[0]) and
-                    (curr_y >= first_pixel[1]) and
-                    (curr_x <= last_pixel[0]) and
-                    (curr_y <= last_pixel[1])):
+            if (first_pixel[0] < curr_x <= last_pixel[0] and
+                    first_pixel[1] < curr_y <= last_pixel[1]):
                 return True
 
         return False
@@ -219,30 +226,31 @@ class Window:
         # get last displayed tile
         last_tile = self.get_displayed_tile('LAST')
 
-        width = (last_tile[0] - first_tile[0])
-        height = (last_tile[1] - first_tile[1])
+        size = (last_tile[0] - first_tile[0],
+                last_tile[1] - first_tile[1])
 
         # scale curr_map to the viewn section and insert map section
         # self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (width, height))
         # self.curr_map_surface.blit(self.map_surface, (0, 0), (first_tile, last_tile))
 
         # alternative: define curr_map_surface as subsurface of map_surface
-        curr_rect = pygame.Rect(first_tile, (width, height))
+        curr_rect = pygame.Rect(first_tile, size)
         self.curr_map_surface = self.map_surface.subsurface(curr_rect)
 
         # scale curr_map to the tile size
-        width *= Params.map_tilesize
-        height *= Params.map_tilesize
-        self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, (width, height))
+        size = (size[0] * Params.map_tilesize,
+                size[1] * Params.map_tilesize)
+        self.curr_map_surface = pygame.transform.scale(self.curr_map_surface, size)
 
         # update additional surface offset
-        Params.map_add_surface_offset = (first_tile[0] * Params.map_tilesize, first_tile[1] * Params.map_tilesize)
+        Params.map_add_surface_offset = (first_tile[0] * Params.map_tilesize,
+                                         first_tile[1] * Params.map_tilesize)
 
     def render_buffer_to_curr_map(self, _map_position, _max_size):  # scales + renders buffer_surface to a map position
         # _map_position is the centered position of where to draw buffer_surface to the map (at tilesize = max_tilesize)
         # _max_size is the target size of buffer_surface (at tilesize = max_tilesize)
         orig_size = self.buffer_surface.get_size()
-        if (orig_size[0] == 0) or (orig_size[1] == 0):  # check if buffer has length|width == 0
+        if not all(orig_size):  # check if buffer has length|width == 0
             return
 
         rect = pygame.Rect(_map_position, _max_size)
@@ -266,18 +274,18 @@ class Window:
 
         if Params.buffer_antialiasing:
             # create rect, whose inside is the area of the curr_map where the buffer will be rendered
-            antial_rect = pygame.Rect(render_pos, render_size)
+            aa_rect = pygame.Rect(render_pos, render_size)
             curr_map_rect = pygame.Rect((0, 0), self.curr_map_surface.get_size())
-            antial_rect = curr_map_rect.clip(antial_rect)  # gets the intersection
-            self.buffer_antial_surface = self.curr_map_surface.subsurface(antial_rect)
-            self.buffer_antial_surface = pygame.transform.scale(self.buffer_antial_surface, orig_size)
-            self.buffer_antial_surface.blit(self.buffer_surface, (0, 0))
-            # self.buffer_antial_surface = pygame.transform.smoothscale(self.buffer_antial_surface,  # has no affect
+            aa_rect = curr_map_rect.clip(aa_rect)  # gets the intersection
+            self.buffer_aa_surface = self.curr_map_surface.subsurface(aa_rect)
+            self.buffer_aa_surface = pygame.transform.scale(self.buffer_aa_surface, orig_size)
+            self.buffer_aa_surface.blit(self.buffer_surface, (0, 0))
+            # self.buffer_aa_surface = pygame.transform.smoothscale(self.buffer_aa_surface,  # has no affect
             #                                                           (orig_size[0] * 2, orig_size[1] * 2))
-            self.buffer_antial_surface = pygame.transform.smoothscale(self.buffer_antial_surface, render_size)
+            self.buffer_aa_surface = pygame.transform.smoothscale(self.buffer_aa_surface, render_size)
 
             # draw the antialiased buffer_surface to the curr_map_surface
-            self.curr_map_surface.blit(self.buffer_antial_surface, render_pos)
+            self.curr_map_surface.blit(self.buffer_aa_surface, render_pos)
         else:
             self.buffer_surface = pygame.transform.scale(self.buffer_surface, render_size)
 
@@ -285,9 +293,20 @@ class Window:
             self.curr_map_surface.blit(self.buffer_surface, render_pos)
 
     def render_creatures(self):  # calls render_creature for every visible creature
-        for i in range(1):
-            self.create_dummy_creature()
-            self.render_curr_creature()
+
+        # iterable and mutable list for all needed-to-draw creatures
+        _toDraw = {
+            self.create_dummy_creature,
+            self.render_curr_creature
+        }
+
+        for creature in _toDraw:
+            creature()
+
+        # previously:
+        # for i in range(1):
+        #     self.create_dummy_creature()
+        #     self.render_curr_creature()
 
     def render_curr_creature(self):  # renders creature on curr_map_surface
         # specify parameters
@@ -304,6 +323,12 @@ class Window:
                            size[0], size[1])
         if not self.rect_is_on_curr_map(rect):
             return
+        # get first and last rendered pixels relative to map_curr_offset
+        first_pixel = self.get_displayed_tile('FIRST')
+        first_pixel = (first_pixel[0] * Params.map_tilesize, first_pixel[1] * Params.map_tilesize)
+        last_pixel = self.get_displayed_tile('LAST')
+        last_pixel = (last_pixel[0] * Params.map_tilesize, last_pixel[1] * Params.map_tilesize)
+        # FIXME eventually: not used values 'first_pixel' and 'last_pixel'
 
         # adjust buffer_surface
         # fill buffer with transparent color key:
@@ -337,97 +362,97 @@ class Window:
 
     @staticmethod
     def get_cursor_data(_this_one):
-        cursors = {}
+        cursors = {
+            'std': (  # sized 16x16
+                "   XX           ",
+                "  X..X          ",
+                "  X..X          ",
+                "   X..X         ",
+                "   X..X XXXX    ",
+                "    X..X..X.XX  ",
+                "   XX..X..X.X.X ",
+                "  X.X..X..X.X.X ",
+                " X..X.........X ",
+                " X............X ",
+                "  X....X.X.X..X ",
+                "  X....X.X.X..X ",
+                "   X...X.X.X.X  ",
+                "    X........X  ",
+                "     X....X.X   ",
+                "     XXXXX XX   "),
 
-        cursors['std'] = (  # sized 16x16
-            "   XX           ",
-            "  X..X          ",
-            "  X..X          ",
-            "   X..X         ",
-            "   X..X XXXX    ",
-            "    X..X..X.XX  ",
-            "   XX..X..X.X.X ",
-            "  X.X..X..X.X.X ",
-            " X..X.........X ",
-            " X............X ",
-            "  X....X.X.X..X ",
-            "  X....X.X.X..X ",
-            "   X...X.X.X.X  ",
-            "    X........X  ",
-            "     X....X.X   ",
-            "     XXXXX XX   ")
+            'lmb': (  # sized 16x16
+                "   XX           ",
+                "  X..X          ",
+                "  X..X          ",
+                "  X..X          ",
+                "   X..X XXXX    ",
+                "   X..XX..X.XX  ",
+                "   XX..X..X.X.X ",
+                "  X.X..X..X.X.X ",
+                " X..X.........X ",
+                " X............X ",
+                "  X....X.X.X..X ",
+                "  X....X.X.X..X ",
+                "   X...X.X.X.X  ",
+                "    X........X  ",
+                "     X....X.X   ",
+                "     XXXXX XX   "),
 
-        cursors['lmb'] = (  # sized 16x16
-            "   XX           ",
-            "  X..X          ",
-            "  X..X          ",
-            "  X..X          ",
-            "   X..X XXXX    ",
-            "   X..XX..X.XX  ",
-            "   XX..X..X.X.X ",
-            "  X.X..X..X.X.X ",
-            " X..X.........X ",
-            " X............X ",
-            "  X....X.X.X..X ",
-            "  X....X.X.X..X ",
-            "   X...X.X.X.X  ",
-            "    X........X  ",
-            "     X....X.X   ",
-            "     XXXXX XX   ")
+            'rmb': (  # sized 16x16
+                "   XX  XX       ",
+                "  X..XX..X      ",
+                "  X..XX..X      ",
+                "  X..XX..X      ",
+                "   X..X..XXX    ",
+                "   X..XX..X.XX  ",
+                "   XX..X..X.X.X ",
+                "  X.X..X..X.X.X ",
+                " X..X.........X ",
+                " X............X ",
+                "  X....X.X.X..X ",
+                "  X....X.X.X..X ",
+                "   X...X.X.X.X  ",
+                "    X........X  ",
+                "     X....X.X   ",
+                "     XXXXX XX   "),
 
-        cursors['rmb'] = (  # sized 16x16
-            "   XX  XX       ",
-            "  X..XX..X      ",
-            "  X..XX..X      ",
-            "  X..XX..X      ",
-            "   X..X..XXX    ",
-            "   X..XX..X.XX  ",
-            "   XX..X..X.X.X ",
-            "  X.X..X..X.X.X ",
-            " X..X.........X ",
-            " X............X ",
-            "  X....X.X.X..X ",
-            "  X....X.X.X..X ",
-            "   X...X.X.X.X  ",
-            "    X........X  ",
-            "     X....X.X   ",
-            "     XXXXX XX   ")
+            'drg': (  # sized 16x16
+                "   XX  XX       ",
+                "  X..XX..X      ",
+                "  X..XX..X      ",
+                "  X..XX..X      ",
+                "  X..XX..XXX    ",
+                "   X..XX..X.XX  ",
+                "   XX..X..X.X.X ",
+                "  X.X..X..X.X.X ",
+                " X..X.........X ",
+                " X............X ",
+                "  X....X.X.X..X ",
+                "  X....X.X.X..X ",
+                "   X...X.X.X.X  ",
+                "    X........X  ",
+                "     X....X.X   ",
+                "     XXXXX XX   "),
 
-        cursors['drg'] = (  # sized 16x16
-            "   XX  XX       ",
-            "  X..XX..X      ",
-            "  X..XX..X      ",
-            "  X..XX..X      ",
-            "  X..XX..XXX    ",
-            "   X..XX..X.XX  ",
-            "   XX..X..X.X.X ",
-            "  X.X..X..X.X.X ",
-            " X..X.........X ",
-            " X............X ",
-            "  X....X.X.X..X ",
-            "  X....X.X.X..X ",
-            "   X...X.X.X.X  ",
-            "    X........X  ",
-            "     X....X.X   ",
-            "     XXXXX XX   ")
-
-        cursors['drg2'] = (  # sized 16x16
-            "       XX       ",
-            "      X..X      ",
-            "     X....X     ",
-            "    X..XX..X    ",
-            "   XXXX..XXXX   ",
-            "  X.X X..X X.X  ",
-            " X..XX.XX.XX..X ",
-            "X..X..X  X..X..X",
-            "X..X..X  X..X..X",
-            " X..XX.XX.XX..X ",
-            "  X.X X..X X.X  ",
-            "   XXXX..XXXX   ",
-            "    X..XX..X    ",
-            "     X....X     ",
-            "      X..X      ",
-            "       XX       ")
+            'drg2': (  # sized 16x16
+                "       XX       ",
+                "      X..X      ",
+                "     X....X     ",
+                "    X..XX..X    ",
+                "   XXXX..XXXX   ",
+                "  X.X X..X X.X  ",
+                " X..XX.XX.XX..X ",
+                "X..X..X  X..X..X",
+                "X..X..X  X..X..X",
+                " X..XX.XX.XX..X ",
+                "  X.X X..X X.X  ",
+                "   XXXX..XXXX   ",
+                "    X..XX..X    ",
+                "     X....X     ",
+                "      X..X      ",
+                "       XX       ")
+        }
 
         _cur_file, _cur_mask = pygame.cursors.compile(cursors[_this_one], 'X', '.')
         return (16, 16), (3, 1), _cur_file, _cur_mask

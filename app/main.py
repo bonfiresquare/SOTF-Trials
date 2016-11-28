@@ -7,6 +7,12 @@ from Params import *
 from Minder import *
 from Tools import *
 
+# TODO: outsource the Params values into an *.ini
+# TODO: make the main loop a ("Program") class with methods and attributes to store params from *.ini
+# TODO: figure out how to store the map and its content efficiently
+# TODO: outsource the renderer stuff into an extra class
+# TODO: reorganize the Tools classes for better distinction
+
 
 #  _________________________________________________________ #
 # ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ define mainloop ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ #

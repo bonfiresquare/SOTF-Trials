@@ -3,6 +3,7 @@
 __pycache__
 
 #ignored files
+*.jpg
 *.txt
 \#*.*
-*.jpg
+savegame
