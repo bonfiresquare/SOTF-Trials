@@ -20,8 +20,8 @@ class Minder(ABC):
                pygame.K_F5:     'RESET',
                pygame.K_F8:     'SAVE',
                pygame.K_F9:     'LOAD',
-               pygame.K_F10:    'TOGGLE_ANTIALIASING',
-               pygame.K_F11:    'TOGGLE_FULLSCREEN',
+               pygame.K_F10:    'TOGGLE_AA',
+               pygame.K_F11:    'TOGGLE_FULL',
                pygame.K_F12:    'CAPTURE'}
     @staticmethod
     def have_a_look():
@@ -45,11 +45,11 @@ class Minder(ABC):
                 Minder._mouse_move = pygame.mouse.get_rel()
                 if pygame.mouse.get_pressed()[2]:
                     pygame.mouse.set_cursor(*Window.get_cursor_data('drg'))
-                    output = 'DRAGGING'
+                    output = 'DRAG_ON'
             elif e.type == pygame.MOUSEBUTTONUP:
                 pygame.mouse.set_cursor(*Window.get_cursor_data('std'))
                 if e.button == 3:
-                    output = 'DRAGGING_OFF'
+                    output = 'DRAG_OFF'
         return output
 
     @staticmethod

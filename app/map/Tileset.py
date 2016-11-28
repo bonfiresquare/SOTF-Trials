@@ -45,10 +45,16 @@ class Tileset:
                 # _min = self.height[i, k] if self.height[i, k] < _min else _min
                 # _max = self.height[i, k] if self.height[i, k] > _max else _max
 
-        print('Proportional distribution of heights:')
+        print('-'*24)
+        print('Distribution of heights:')
+        _terrain = ['Water',
+                    'Forest',
+                    'Mountain']
         _prop_heights = Tools.get_prop_heights()
         for i in _prop_heights:
-            print(i, ':', '\t->', round((_prop_heights[i] * 100) / (self.size_x * self.size_y), 2), '%')
+            print(_terrain[i].zfill(10).replace('0', ' '), '->',
+                  round((_prop_heights[i] * 100) / (self.size_x * self.size_y), 2), '%')
+        print('-'*24)
 
     def create_tileset(self):
         # for k in range(self.size_y):
