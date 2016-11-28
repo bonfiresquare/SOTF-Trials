@@ -15,11 +15,12 @@ class Minder(ABC):
                pygame.K_RIGHT:  'MOVE_RIGHT',
                pygame.K_UP:     'MOVE_UP',
                pygame.K_DOWN:   'MOVE_DOWN',
-               pygame.K_F2:     'RESET',
+               pygame.K_F2:     'DRAW',
                pygame.K_F3:     'CLEAR',
-               pygame.K_F5:     'DRAW',
+               pygame.K_F5:     'RESET',
                pygame.K_F8:     'SAVE',
                pygame.K_F9:     'LOAD',
+               pygame.K_F10:    'TOGGLE_ANTIALIASING',
                pygame.K_F11:    'TOGGLE_FULLSCREEN',
                pygame.K_F12:    'CAPTURE'}
     @staticmethod
