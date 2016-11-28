@@ -20,8 +20,8 @@ The controls are as follows:
 - Use the arrow keys or drag the mouse while pressing the right mouse button to
 	move the map around.
 - Use the mouse wheel to zoom in and out
-- Press F2 to generate another map
-- Press F3 or F5 to turn off and on the rendering (maybe useful later on)
+- Press F2 or F3 to turn on and off the rendering (maybe useful later on)
+- Press F5 to generate another map
 - Press F8 or F9 to save and load a specific map (only one map is stored at once)
 - Press F11 to toggle between windowed and fullscreen mode
 - Press F12 to take a screenshot with date and time imformation in 'app' folder

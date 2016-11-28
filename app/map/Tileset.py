@@ -59,9 +59,9 @@ class Tileset:
     def get_color_of(self, _x, _y):
         return self.colormap[int(_x), int(_y)]
 
-    ## def get_waterlevel_of(self, _x, _y):
-     #   # waterlevel=100 : water; waterlevel=50 : wet grassland; waterlevel=0 : desert/mountain
-     #   if self.colormap[int(_x), int(_y)]
+    # def get_waterlevel_of(self, _x, _y):
+    #   # waterlevel=100 : water; waterlevel=50 : wet grassland; waterlevel=0 : desert/mountain
+    #   if self.colormap[int(_x), int(_y)]
 
     @staticmethod
     def reset_tileset():
